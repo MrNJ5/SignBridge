@@ -1,0 +1,88 @@
+name: Build SignBridge Android APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'SignBridge_Cloudflare_Pages_Upload.zip'
+      - 'package.json'
+      - 'capacitor.config.json'
+      - '.github/workflows/android-debug-apk.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  build-debug-apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android SDK packages
+        run: |
+          yes | sdkmanager --licenses
+          sdkmanager 'platform-tools' 'platforms;android-36' 'build-tools;36.0.0'
+
+      - name: Extract website into Capacitor web directory
+        run: |
+          test -f SignBridge_Cloudflare_Pages_Upload.zip
+          mkdir -p www
+          unzip -oq SignBridge_Cloudflare_Pages_Upload.zip -d www
+          test -f www/index.html
+          test -f www/hand-tracker.worker.js
+
+      - name: Install project dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Generate and sync Android project
+        run: |
+          npx cap add android
+          npx cap sync android
+
+      - name: Add camera permissions
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('android/app/src/main/AndroidManifest.xml')
+          s = p.read_text()
+          entries = [
+              '    <uses-permission android:name="android.permission.CAMERA" />',
+              '    <uses-feature android:name="android.hardware.camera" android:required="false" />',
+          ]
+          for entry in entries:
+              name = entry.split('android:name="', 1)[1].split('"', 1)[0]
+              if f'android:name="{name}"' not in s:
+                  s = s.replace('<application', entry + '\n    <application', 1)
+          p.write_text(s)
+          PY
+
+      - name: Build debug APK
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew --no-daemon assembleDebug
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SignBridge-Android-debug-APK
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 30
