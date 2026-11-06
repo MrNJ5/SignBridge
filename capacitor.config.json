@@ -1,0 +1,9 @@
+{
+  "appId": "com.signbridge.translator",
+  "appName": "SignBridge",
+  "webDir": "www",
+  "bundledWebRuntime": false,
+  "server": {
+    "androidScheme": "https"
+  }
+}

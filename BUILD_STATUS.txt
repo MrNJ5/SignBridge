@@ -1,0 +1,9 @@
+SignBridge V2.2 status
+
+[READY] Website code converted from Firebase to Supabase client.
+[READY] Supabase SQL schema and RLS policies for public sample reads and admin-only writes.
+[READY] Cloudflare Pages direct-upload and CLI deployment assets/scripts.
+[READY] Capacitor Android wrapper configuration and GitHub Actions debug APK workflow.
+[NOT DEPLOYED] No Cloudflare public URL: requires authorization with user's Cloudflare account.
+[NOT BUILT] APK binary not compiled in this environment: Android SDK/Gradle are absent and SDK download host is unreachable.
+[PROTOTYPE] Recognition remains nearest-landmark matching against admin-recorded samples, not a trained full ISL model.

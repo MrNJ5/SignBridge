@@ -1,0 +1,3 @@
+name = "signbridge-isl-to-speech"
+pages_build_output_dir = "./www"
+compatibility_date = "2026-11-06"
